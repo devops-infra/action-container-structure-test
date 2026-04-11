@@ -26,6 +26,27 @@ tasks:
       - task: lint:shellcheck
       - task: lint:yamllint
 
+  test:
+    desc: Run repository test suite
+    cmds:
+      - task: test:entrypoint
+
+  test:entrypoint:
+    desc: Run entrypoint unit tests
+    cmds:
+      - |
+        echo "▶️ Running entrypoint tests..."
+        set +e
+        bash tests/test_entrypoint.sh
+        rc=$?
+        set -e
+        if [ "$rc" -eq 0 ]; then
+          echo "✅ entrypoint tests passed"
+        else
+          echo "❌ entrypoint tests failed"
+          exit $rc
+        fi
+
   lint:actionlint:
     desc: Lint GitHub Actions workflows with actionlint
     cmds:

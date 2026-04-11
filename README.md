@@ -24,6 +24,7 @@ Check also other actions from [DevOps-Infra](https://shyper.pro/portfolio/projec
 [
 ![GitHub repo](https://img.shields.io/badge/GitHub-devops--infra%2Fcontainer--structure--test-blueviolet.svg?style=plastic&logo=github)
 ![GitHub last commit](https://img.shields.io/github/last-commit/devops-infra/container-structure-test?color=blueviolet&logo=github&style=plastic&label=Last%20commit)
+![Pull Request](https://github.com/devops-infra/container-structure-test/actions/workflows/auto-create-pull-request.yml/badge.svg)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/devops-infra/container-structure-test?color=blueviolet&label=Code%20size&style=plastic&logo=github)
 ![GitHub license](https://img.shields.io/github/license/devops-infra/container-structure-test?color=blueviolet&logo=github&style=plastic&label=License)
 ](https://github.com/devops-infra/container-structure-test "shields.io")
@@ -33,6 +34,7 @@ Check also other actions from [DevOps-Infra](https://shyper.pro/portfolio/projec
 ![Docker version](https://img.shields.io/docker/v/devopsinfra/container-structure-test?color=blue&label=Version&logo=docker&style=plastic&sort=semver)
 ![Image size](https://img.shields.io/docker/image-size/devopsinfra/container-structure-test/latest?label=Image%20size&style=plastic&logo=docker)
 ![Docker Pulls](https://img.shields.io/docker/pulls/devopsinfra/container-structure-test?color=blue&label=Pulls&logo=docker&style=plastic)
+![Weekly Health](https://github.com/devops-infra/container-structure-test/actions/workflows/cron-check-dependencies.yml/badge.svg)
 ](https://hub.docker.com/r/devopsinfra/container-structure-test "shields.io")
 
 
@@ -159,19 +161,19 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: devops-infra/container-structure-test@v1.0.0
-        id: Pin patch version
+        id: pin-patch-version
         with:
           image: my-image:latest
           config: tests/structure-test.yaml
 
       - uses: devops-infra/container-structure-test@v1.0
-        id: Pin minor version
+        id: pin-minor-version
         with:
           image: my-image:latest
           config: tests/structure-test.yaml
 
       - uses: devops-infra/container-structure-test@v1
-        id: Pin major version
+        id: pin-major-version
         with:
           image: my-image:latest
           config: tests/structure-test.yaml

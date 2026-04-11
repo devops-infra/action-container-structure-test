@@ -2,17 +2,15 @@
 
 set -Eeuo pipefail
 
-# Return code
 RET_CODE=0
 
-# Optional debug logging: pass `debug: true` in the action inputs to enable
 [[ "${INPUT_DEBUG:-false}" == "true" ]] && set -x
 
-info()  { printf "[INFO] ℹ️ %s\n" "$*"; }
-#shellcheck disable=SC2329
-warn()  { printf "[WARN] ⚠️ %s\n" "$*" >&2; }
-#shellcheck disable=SC2329
-error() { printf "[ERROR] ❌ %s\n" "$*" >&2; }
+info()  { printf "[INFO] %s\n" "$*"; }
+# shellcheck disable=SC2329
+warn()  { printf "[WARN] %s\n" "$*" >&2; }
+# shellcheck disable=SC2329
+error() { printf "[ERROR] %s\n" "$*" >&2; }
 
 write_output() {
   local kv="$1"
@@ -24,6 +22,36 @@ write_output() {
 }
 
 trap 'error "Action failed. Check logs above."' ERR
+
+is_bool() {
+  case "$1" in
+    true|false) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+validate_bool() {
+  local name="$1"
+  local value="$2"
+  if ! is_bool "${value}"; then
+    error "Invalid value for '${name}': '${value}'. Expected 'true' or 'false'."
+    exit 1
+  fi
+}
+
+validate_enum() {
+  local name="$1"
+  local value="$2"
+  shift 2
+  local allowed
+  for allowed in "$@"; do
+    if [[ "${value}" == "${allowed}" ]]; then
+      return 0
+    fi
+  done
+  error "Invalid value for '${name}': '${value}'. Allowed values: $*"
+  exit 1
+}
 
 # Inputs
 IMAGE="${INPUT_IMAGE:-}"
@@ -79,6 +107,40 @@ if [[ -z "${CONFIG}" ]]; then
   exit 1
 fi
 
+validate_enum "driver" "${DRIVER}" docker tar host
+validate_enum "output" "${OUTPUT}" text json junit
+validate_bool "pull" "${PULL}"
+validate_bool "save" "${SAVE}"
+validate_bool "quiet" "${QUIET}"
+validate_bool "no_color" "${NO_COLOR}"
+validate_bool "force" "${FORCE}"
+validate_bool "ignore_ref_annotation" "${IGNORE_REF_ANNOTATION}"
+
+if [[ -n "${DEFAULT_IMAGE_TAG}" && -z "${IMAGE_FROM_OCI_LAYOUT}" ]]; then
+  error "Input 'default_image_tag' requires 'image_from_oci_layout'."
+  exit 1
+fi
+
+if [[ "${IGNORE_REF_ANNOTATION}" == "true" && -z "${IMAGE_FROM_OCI_LAYOUT}" ]]; then
+  error "Input 'ignore_ref_annotation' requires 'image_from_oci_layout'."
+  exit 1
+fi
+
+if [[ -n "${JUNIT_SUITE_NAME}" && "${OUTPUT}" != "junit" ]]; then
+  error "Input 'junit_suite_name' can only be used when output is 'junit'."
+  exit 1
+fi
+
+if [[ -n "${RUNTIME}" && "${DRIVER}" != "docker" ]]; then
+  error "Input 'runtime' can only be used with driver 'docker'."
+  exit 1
+fi
+
+if [[ "${PULL}" == "true" && "${DRIVER}" != "docker" ]]; then
+  error "Input 'pull' can only be used with driver 'docker'."
+  exit 1
+fi
+
 # Build command arguments
 CMD_ARGS=("test")
 
@@ -93,7 +155,16 @@ fi
 
 # Add config files, supporting space- and newline-separated lists
 mapfile -t CONFIG_FILES < <(printf '%s' "${CONFIG}" | tr -s '[:space:]' '\n' | grep -v '^[[:space:]]*$')
+if [[ "${#CONFIG_FILES[@]}" -eq 0 ]]; then
+  error "Input 'config' did not contain any valid file paths."
+  exit 1
+fi
+
 for cfg_file in "${CONFIG_FILES[@]}"; do
+  if [[ ! -f "${cfg_file}" ]]; then
+    error "Config file not found: ${cfg_file}"
+    exit 1
+  fi
   CMD_ARGS+=(--config "${cfg_file}")
 done
 
@@ -160,9 +231,12 @@ if [[ -n "${TEST_REPORT}" ]]; then
 
   if [[ -f "${TEST_REPORT}" ]]; then
     info "Test report written to: ${TEST_REPORT}"
-    cat "${TEST_REPORT}"
-    # CST always writes JSON to report files
-    parse_stats_json "${TEST_REPORT}"
+    case "${OUTPUT}" in
+      junit) parse_stats_junit "${TEST_REPORT}" ;;
+      *)     parse_stats_json "${TEST_REPORT}" ;;
+    esac
+  else
+    warn "Expected test report file was not created: ${TEST_REPORT}"
   fi
 else
   # Run normally and tee to a temp file for stats parsing
