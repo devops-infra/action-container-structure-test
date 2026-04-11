@@ -1,0 +1,11 @@
+# Intellij
+/.idea/
+*.iml
+
+# Custom
+.tmp/
+.venv
+.venv/
+.envrc
+.env
+.tmp

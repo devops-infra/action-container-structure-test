@@ -1,0 +1,8 @@
+# Exclude
+*
+
+# Include
+!Dockerfile
+!entrypoint.sh
+!LICENSE
+!README.md

@@ -1,0 +1,32 @@
+version: '3'
+
+silent: true
+
+includes:
+  variables: ./Taskfile.variables.yml
+  cicd:
+    taskfile: ./Taskfile.cicd.yml
+    flatten: true
+  docker:
+    taskfile: ./Taskfile.docker.yml
+    flatten: true
+
+
+tasks:
+  default:
+    desc: List tasks
+    cmds:
+      - task help
+
+  help:
+    desc: Detailed help
+    cmds:
+      - |
+        echo "Tasks:"
+        task --list
+        echo ""
+        echo "Environment:"
+        echo "  DOCKER_NAME={{.DOCKER_NAME}}  DOCKER_USERNAME={{.DOCKER_USERNAME}}"
+        echo "  GHRC_NAME={{.GHRC_NAME}}  GITHUB_USERNAME={{.GITHUB_USERNAME}}"
+        echo "  LAST_RELEASE={{.LAST_RELEASE}}"  VERSION={{.VERSION}}   VERSION_FULL={{.VERSION_FULL}}
+        echo "  BRANCH={{.GIT_BRANCH}}  GIT_SHORT_SHA={{.GIT_SHORT_SHA}}"  GIT_SHA={{.GIT_SHA}}
