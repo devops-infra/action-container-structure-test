@@ -1,23 +1,28 @@
-FROM ubuntu:questing-20251217
-
-# Disable interactive mode
-ENV DEBIAN_FRONTEND noninteractive
+FROM alpine:3.21
 
 # Copy all needed files
 COPY entrypoint.sh /
 
 # Install needed packages
+# hadolint ignore=DL3018
+RUN apk add --no-cache \
+      bash \
+      curl \
+      jq && \
+    chmod +x /entrypoint.sh
+
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
-# hadolint ignore=DL3008
+
+# Install container-structure-test binary
+ARG TARGETARCH
+# renovate: datasource=github-releases depName=GoogleContainerTools/container-structure-test
+ARG CST_VERSION=v1.22.1
 RUN set -eux ;\
-  chmod +x /entrypoint.sh ;\
-  apt-get update -y ;\
-  echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections ;\
-  apt-get install --no-install-recommends -y \
-    jq ;\
-  # OTHER BINARIES TO INSTALL HERE \
-  apt-get clean ;\
-  rm -rf /var/lib/apt/lists/*
+  curl -fsSL \
+    "https://github.com/GoogleContainerTools/container-structure-test/releases/download/${CST_VERSION}/container-structure-test-linux-${TARGETARCH}" \
+    -o /usr/local/bin/container-structure-test ;\
+  chmod +x /usr/local/bin/container-structure-test ;\
+  container-structure-test version
 
 # Finish up
 WORKDIR /github/workspace

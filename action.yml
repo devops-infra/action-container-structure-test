@@ -1,26 +1,82 @@
-name: GitHub Action template
+name: Container Structure Test
 author: Krzysztof Szyper / ChristophShyper / shyper.pro
-description: Template repository for GitHub Actions
+description: GitHub Action running Google Container Structure Tests against a container image
 inputs:
-  foobar:
-    description: Some input variable
+  image:
+    description: Image to test (required unless using image_from_oci_layout)
     required: false
-    default: foobar
+  config:
+    description: Path(s) to test config file(s), space or newline-separated
+    required: true
+  driver:
+    description: Driver to use when running tests (docker, tar, host)
+    required: false
+    default: docker
+  platform:
+    description: Platform to test (e.g. linux/amd64, linux/arm64)
+    required: false
+  pull:
+    description: Force pull the image before running tests
+    required: false
+    default: 'false'
+  save:
+    description: Preserve created containers after test run
+    required: false
+    default: 'false'
+  quiet:
+    description: Suppress test output
+    required: false
+    default: 'false'
+  no_color:
+    description: Disable colorized output
+    required: false
+    default: 'false'
+  output:
+    description: Output format for the test results (text, json, junit)
+    required: false
+    default: text
+  test_report:
+    description: Write test results to this file path (text output is converted to json by CST)
+    required: false
+  junit_suite_name:
+    description: Name for the JUnit test suite (only used when output is junit)
+    required: false
+  metadata:
+    description: Path to image metadata file
+    required: false
+  runtime:
+    description: Runtime to use with the docker driver
+    required: false
+  force:
+    description: Force run of host driver without interactive prompt
+    required: false
+    default: 'false'
+  image_from_oci_layout:
+    description: Path to OCI image layout directory to test against (mutually exclusive with image)
+    required: false
+  default_image_tag:
+    description: Default image tag when OCI layout lacks a ref annotation (requires image_from_oci_layout)
+    required: false
+  ignore_ref_annotation:
+    description: Ignore org.opencontainers.image.ref.name annotation when loading OCI layout
+    required: false
+    default: 'false'
   debug:
     description: Enable verbose debug logging
     required: false
     default: 'false'
-  github_token:
-    description: GitHub token for authenticated calls
-    required: false
 outputs:
-  barfoo:
-    description: Output from action
-  foobar:
-    description: Echo of input 'foobar'
+  total:
+    description: Total number of tests executed
+  passed:
+    description: Number of tests that passed
+  failed:
+    description: Number of tests that failed
+  exit_code:
+    description: Exit code returned by container-structure-test
 runs:
   using: docker
-  image: docker://devopsinfra/template-action:v1.0.4
+  image: docker://devopsinfra/container-structure-test:v1.0.0
 branding:
-  color: purple
-  icon: upload-cloud
+  color: blue
+  icon: check-circle
