@@ -329,7 +329,7 @@ DOCKER_TOKEN=... GITHUB_TOKEN=... task docker:push
 
 Local run notes:
 - `docker:test:local` always builds the action image first via `docker:build:local`.
-- `docker:test:smoke` uses `tests/fixtures/local-image.yml` to verify installed binaries,
+- `docker:test:smoke` uses `tests/docker/local-image.yml` to verify installed binaries,
   metadata, and cache cleanup on the built image.
 - For `DRIVER=docker` (default), Docker socket access is required.
 - Optional task variables map to action inputs, for example:
