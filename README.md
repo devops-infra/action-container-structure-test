@@ -3,8 +3,8 @@
 
 
 ## 📦 Available on
-- **Docker Hub:** [devopsinfra/container-structure-test:latest](https://hub.docker.com/repository/docker/devopsinfra/container-structure-test)
-- **GitHub Packages:** [ghcr.io/devops-infra/container-structure-test:latest](https://github.com/devops-infra/container-structure-test/pkgs/container/container-structure-test)
+- **Docker Hub:** [devopsinfra/action-container-structure-test:latest](https://hub.docker.com/repository/docker/devopsinfra/action-container-structure-test)
+- **GitHub Packages:** [ghcr.io/devops-infra/action-container-structure-test:latest](https://github.com/devops-infra/action-container-structure-test/pkgs/container/action-container-structure-test)
 
 
 ## ✨ Features
@@ -22,20 +22,20 @@ Check also other actions from [DevOps-Infra](https://shyper.pro/portfolio/projec
 
 ## 📊 Badges
 [
-![GitHub repo](https://img.shields.io/badge/GitHub-devops--infra%2Fcontainer--structure--test-blueviolet.svg?style=plastic&logo=github)
-![GitHub last commit](https://img.shields.io/github/last-commit/devops-infra/container-structure-test?color=blueviolet&logo=github&style=plastic&label=Last%20commit)
-![Pull Request](https://github.com/devops-infra/container-structure-test/actions/workflows/auto-create-pull-request.yml/badge.svg)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/devops-infra/container-structure-test?color=blueviolet&label=Code%20size&style=plastic&logo=github)
-![GitHub license](https://img.shields.io/github/license/devops-infra/container-structure-test?color=blueviolet&logo=github&style=plastic&label=License)
-](https://github.com/devops-infra/container-structure-test "shields.io")
+![GitHub repo](https://img.shields.io/badge/GitHub-devops--infra%2Faction--container--structure--test-blueviolet.svg?style=plastic&logo=github)
+![GitHub last commit](https://img.shields.io/github/last-commit/devops-infra/action-container-structure-test?color=blueviolet&logo=github&style=plastic&label=Last%20commit)
+![Pull Request](https://github.com/devops-infra/action-container-structure-test/actions/workflows/auto-create-pull-request.yml/badge.svg)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/devops-infra/action-container-structure-test?color=blueviolet&label=Code%20size&style=plastic&logo=github)
+![GitHub license](https://img.shields.io/github/license/devops-infra/action-container-structure-test?color=blueviolet&logo=github&style=plastic&label=License)
+](https://github.com/devops-infra/action-container-structure-test "shields.io")
 <br>
 [
-![DockerHub](https://img.shields.io/badge/DockerHub-devopsinfra%2Fcontainer--structure--test-blue.svg?style=plastic&logo=docker)
-![Docker version](https://img.shields.io/docker/v/devopsinfra/container-structure-test?color=blue&label=Version&logo=docker&style=plastic&sort=semver)
-![Image size](https://img.shields.io/docker/image-size/devopsinfra/container-structure-test/latest?label=Image%20size&style=plastic&logo=docker)
-![Docker Pulls](https://img.shields.io/docker/pulls/devopsinfra/container-structure-test?color=blue&label=Pulls&logo=docker&style=plastic)
-![Weekly Health](https://github.com/devops-infra/container-structure-test/actions/workflows/cron-check-dependencies.yml/badge.svg)
-](https://hub.docker.com/r/devopsinfra/container-structure-test "shields.io")
+![DockerHub](https://img.shields.io/badge/DockerHub-devopsinfra%2Faction--container--structure--test-blue.svg?style=plastic&logo=docker)
+![Docker version](https://img.shields.io/docker/v/devopsinfra/action-container-structure-test?color=blue&label=Version&logo=docker&style=plastic&sort=semver)
+![Image size](https://img.shields.io/docker/image-size/devopsinfra/action-container-structure-test/latest?label=Image%20size&style=plastic&logo=docker)
+![Docker Pulls](https://img.shields.io/docker/pulls/devopsinfra/action-container-structure-test?color=blue&label=Pulls&logo=docker&style=plastic)
+![Weekly Health](https://github.com/devops-infra/action-container-structure-test/actions/workflows/cron-check-dependencies.yml/badge.svg)
+](https://hub.docker.com/r/devopsinfra/action-container-structure-test "shields.io")
 
 
 ## 🏷️ Version Tags: vX, vX.Y, vX.Y.Z
@@ -48,7 +48,7 @@ This action supports three tag levels for flexible versioning:
 ## 📖 API Reference
 ```yaml
     - name: Run the Action
-      uses: devops-infra/container-structure-test@v1.0.0
+      uses: devops-infra/action-container-structure-test@v1.0.0
       with:
         image: my-image:latest
         config: tests/structure-test.yaml
@@ -106,7 +106,7 @@ jobs:
       - name: Build image
         run: docker build -t my-image:latest .
 
-      - uses: devops-infra/container-structure-test@v1
+      - uses: devops-infra/action-container-structure-test@v1
         with:
           image: my-image:latest
           config: tests/structure-test.yaml
@@ -129,7 +129,7 @@ jobs:
 
       - name: Run structure tests
         id: cst
-        uses: devops-infra/container-structure-test@v1
+        uses: devops-infra/action-container-structure-test@v1
         with:
           image: my-image:latest
           config: |
@@ -160,19 +160,19 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: devops-infra/container-structure-test@v1.0.0
+      - uses: devops-infra/action-container-structure-test@v1.0.0
         id: pin-patch-version
         with:
           image: my-image:latest
           config: tests/structure-test.yaml
 
-      - uses: devops-infra/container-structure-test@v1.0
+      - uses: devops-infra/action-container-structure-test@v1.0
         id: pin-minor-version
         with:
           image: my-image:latest
           config: tests/structure-test.yaml
 
-      - uses: devops-infra/container-structure-test@v1
+      - uses: devops-infra/action-container-structure-test@v1
         id: pin-major-version
         with:
           image: my-image:latest
@@ -195,7 +195,7 @@ jobs:
         run: docker build -t my-image:latest .
 
       - name: Run structure tests
-        uses: devops-infra/container-structure-test@v1
+        uses: devops-infra/action-container-structure-test@v1
         with:
           image: my-image:latest
           config: tests/structure-test.yaml
@@ -219,7 +219,7 @@ jobs:
       - name: Export image as tar
         run: docker save my-image:latest -o my-image.tar
 
-      - uses: devops-infra/container-structure-test@v1
+      - uses: devops-infra/action-container-structure-test@v1
         with:
           image: my-image.tar
           config: tests/file-tests.yaml
@@ -354,5 +354,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 💬 Support
 If you have any questions or need help, please:
-- 📝 Create an [issue](https://github.com/devops-infra/container-structure-test/issues)
+- 📝 Create an [issue](https://github.com/devops-infra/action-container-structure-test/issues)
 - 🌟 Star this repository if you find it useful!
