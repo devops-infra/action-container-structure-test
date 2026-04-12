@@ -15,7 +15,7 @@ commandTests:
   - name: Alpine version check
     command: cat
     args: [/etc/os-release]
-    expectedOutput: [VERSION_ID=3\.21]
+    expectedOutput: [VERSION_ID=3\.23]
 
   - name: Temporary and APK cache cleaned
     command: bash
