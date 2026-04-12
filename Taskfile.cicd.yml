@@ -26,6 +26,27 @@ tasks:
       - task: lint:shellcheck
       - task: lint:yamllint
 
+  test:
+    desc: Run repository test suite
+    cmds:
+      - task: test:entrypoint
+
+  test:entrypoint:
+    desc: Run entrypoint unit tests
+    cmds:
+      - |
+        echo "▶️ Running entrypoint tests..."
+        set +e
+        bash tests/test_entrypoint.sh
+        rc=$?
+        set -e
+        if [ "$rc" -eq 0 ]; then
+          echo "✅ entrypoint tests passed"
+        else
+          echo "❌ entrypoint tests failed"
+          exit $rc
+        fi
+
   lint:actionlint:
     desc: Lint GitHub Actions workflows with actionlint
     cmds:
@@ -94,6 +115,30 @@ tasks:
     desc: Get current version
     cmds:
       - echo "{{.VERSION}}"
+
+  update-versions:
+    desc: Check latest CST release and update Dockerfile ARG
+    cmds:
+      - |
+        set -eu
+        latest="$(curl -LsS https://api.github.com/repos/GoogleContainerTools/container-structure-test/releases/latest | jq -r '.tag_name')"
+        if [ -z "${latest}" ] || [ "${latest}" = "null" ]; then
+          echo "❌ Could not resolve latest container-structure-test version"
+          exit 1
+        fi
+        current="$(sed -nE 's/^ARG CST_VERSION=(v[0-9.]+)$/\1/p' Dockerfile | head -1)"
+        if [ -z "${current}" ]; then
+          echo "❌ Could not resolve current CST_VERSION from Dockerfile"
+          exit 1
+        fi
+        echo "Current CST_VERSION: ${current}"
+        echo "Latest CST_VERSION:  ${latest}"
+        if [ "${current}" = "${latest}" ]; then
+          echo "✅ CST_VERSION already up to date"
+          exit 0
+        fi
+        {{.SED}} -i "s#^ARG CST_VERSION=${current}$#ARG CST_VERSION=${latest}#" Dockerfile
+        echo "✅ Updated Dockerfile CST_VERSION to ${latest}"
 
   version:set:
     desc: Update version in README.md and action.yml

@@ -1,0 +1,39 @@
+schemaVersion: 2.0.0
+
+commandTests:
+  - name: CST version binary present
+    command: /usr/local/bin/container-structure-test
+    args: [version]
+    expectedOutput: [1.]
+
+  - name: Required tools installed
+    command: bash
+    args:
+      - -lc
+      - command -v bash >/dev/null 2>&1 && command -v curl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1
+
+  - name: Alpine version check
+    command: cat
+    args: [/etc/os-release]
+    expectedOutput: [VERSION_ID=3\.23]
+
+  - name: Temporary and APK cache cleaned
+    command: bash
+    args:
+      - -lc
+      - test ! -f /tmp/checksums.txt && (test ! -d /var/cache/apk || test -z "$(find /var/cache/apk -mindepth 1 -maxdepth 1 2>/dev/null)")
+
+fileExistenceTests:
+  - name: entrypoint exists
+    path: /entrypoint.sh
+    shouldExist: true
+    permissions: -rwxr-xr-x
+
+  - name: cst exists
+    path: /usr/local/bin/container-structure-test
+    shouldExist: true
+    permissions: -rwxr-xr-x
+
+metadataTest:
+  workdir: /github/workspace
+  entrypoint: [/entrypoint.sh]
