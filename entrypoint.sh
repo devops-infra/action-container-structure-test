@@ -240,7 +240,7 @@ if [[ -n "${TEST_REPORT}" ]]; then
   fi
 else
   # Run normally and tee to a temp file for stats parsing
-  TEMP_OUTPUT="$(mktemp /tmp/cst-output-XXXXXX.txt)"
+  TEMP_OUTPUT="$(mktemp /tmp/cst-output-XXXXXX)"
   trap - ERR
   set +e
   container-structure-test "${CMD_ARGS[@]}" 2>&1 | tee "${TEMP_OUTPUT}"

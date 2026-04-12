@@ -58,26 +58,26 @@ This action supports three tag levels for flexible versioning:
 ```
 
 ### 🔧 Input Parameters
-| Input                   | Required | Default  | Description                                                                                   |
-|:------------------------|:--------:|:--------:|:----------------------------------------------------------------------------------------------|
-| `image`                 |    *     |          | Image to test. Required unless `image_from_oci_layout` is set. Mutually exclusive with it.   |
-| `config`                |   Yes    |          | Path(s) to test config file(s). Space or newline-separated for multiple files.               |
-| `driver`                |    No    | `docker` | Driver to use when running tests: `docker`, `tar`, or `host`.                                 |
-| `platform`              |    No    |          | Platform to test, e.g. `linux/amd64` or `linux/arm64`. Defaults to host arch.                |
-| `pull`                  |    No    | `false`  | Force pull the image before running tests (docker driver only).                               |
-| `save`                  |    No    | `false`  | Preserve created containers after the test run.                                               |
-| `quiet`                 |    No    | `false`  | Suppress test output.                                                                         |
-| `no_color`              |    No    | `false`  | Disable colorized output.                                                                     |
-| `output`                |    No    | `text`   | Output format: `text`, `json`, or `junit`.                                                    |
-| `test_report`           |    No    |          | Write test results to this file path. CST converts `text` to `json` automatically.           |
-| `junit_suite_name`      |    No    |          | Name for the JUnit test suite (only used when `output` is `junit`).                           |
-| `metadata`              |    No    |          | Path to image metadata file.                                                                  |
-| `runtime`               |    No    |          | Runtime to use with the docker driver (e.g. `runsc` for gVisor).                             |
-| `force`                 |    No    | `false`  | Force run of host driver without interactive prompt.                                          |
-| `image_from_oci_layout` |    No    |          | Path to OCI image layout directory. Mutually exclusive with `image`.                          |
-| `default_image_tag`     |    No    |          | Default image tag when OCI layout lacks a ref annotation. Requires `image_from_oci_layout`.  |
-| `ignore_ref_annotation` |    No    | `false`  | Ignore `org.opencontainers.image.ref.name` annotation when loading OCI layout.               |
-| `debug`                 |    No    | `false`  | Enable verbose debug logging in the action entrypoint.                                        |
+| Input                   | Required | Default  | Description                                                                                 |
+|:------------------------|:--------:|:--------:|:--------------------------------------------------------------------------------------------|
+| `image`                 |    *     |          | Image to test. Required unless `image_from_oci_layout` is set. Mutually exclusive with it.  |
+| `config`                |   Yes    |          | Path(s) to test config file(s). Space or newline-separated for multiple files.              |
+| `driver`                |    No    | `docker` | Driver to use when running tests: `docker`, `tar`, or `host`.                               |
+| `platform`              |    No    |          | Platform to test, e.g. `linux/amd64` or `linux/arm64`. Defaults to host arch.               |
+| `pull`                  |    No    | `false`  | Force pull the image before running tests (docker driver only).                             |
+| `save`                  |    No    | `false`  | Preserve created containers after the test run.                                             |
+| `quiet`                 |    No    | `false`  | Suppress test output.                                                                       |
+| `no_color`              |    No    | `false`  | Disable colorized output.                                                                   |
+| `output`                |    No    |  `text`  | Output format: `text`, `json`, or `junit`.                                                  |
+| `test_report`           |    No    |          | Write test results to this file path. CST converts `text` to `json` automatically.          |
+| `junit_suite_name`      |    No    |          | Name for the JUnit test suite (only used when `output` is `junit`).                         |
+| `metadata`              |    No    |          | Path to image metadata file.                                                                |
+| `runtime`               |    No    |          | Runtime to use with the docker driver (e.g. `runsc` for gVisor).                            |
+| `force`                 |    No    | `false`  | Force run of host driver without interactive prompt.                                        |
+| `image_from_oci_layout` |    No    |          | Path to OCI image layout directory. Mutually exclusive with `image`.                        |
+| `default_image_tag`     |    No    |          | Default image tag when OCI layout lacks a ref annotation. Requires `image_from_oci_layout`. |
+| `ignore_ref_annotation` |    No    | `false`  | Ignore `org.opencontainers.image.ref.name` annotation when loading OCI layout.              |
+| `debug`                 |    No    | `false`  | Enable verbose debug logging in the action entrypoint.                                      |
 
 
 ### 📤 Output Parameters
@@ -101,7 +101,7 @@ jobs:
   container-structure-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build image
         run: docker build -t my-image:latest .
@@ -122,7 +122,7 @@ jobs:
   container-structure-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build image
         run: docker build -t my-image:latest .
@@ -158,7 +158,7 @@ jobs:
   container-structure-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: devops-infra/container-structure-test@v1.0.0
         id: pin-patch-version
@@ -189,7 +189,7 @@ jobs:
   container-structure-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build image
         run: docker build -t my-image:latest .
@@ -214,7 +214,7 @@ jobs:
   container-structure-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Export image as tar
         run: docker save my-image:latest -o my-image.tar
@@ -308,9 +308,32 @@ task lint
 # Build multi-arch images locally (no push)
 task docker:build
 
+# Build a local runnable image for your current architecture
+task docker:build:local
+
+# Run container-structure-test action locally (build is required and enforced)
+task docker:test:local IMAGE=my-image:latest CONFIG=tests/structure-test.yaml
+
+# Run with multiple config files
+task docker:test:local IMAGE=my-image:latest CONFIG="tests/command-tests.yaml tests/file-tests.yaml"
+
+# Run against OCI layout
+task docker:test:local IMAGE_FROM_OCI_LAYOUT=./oci-layout CONFIG=tests/structure-test.yaml
+
+# Run built-in smoke test against the locally built action image
+task docker:test:smoke
+
 # Push images (requires DOCKER_TOKEN and GITHUB_TOKEN)
 DOCKER_TOKEN=... GITHUB_TOKEN=... task docker:push
 ```
+
+Local run notes:
+- `docker:test:local` always builds the action image first via `docker:build:local`.
+- `docker:test:smoke` uses `tests/fixtures/local-image.yml` to verify installed binaries,
+  metadata, and cache cleanup on the built image.
+- For `DRIVER=docker` (default), Docker socket access is required.
+- Optional task variables map to action inputs, for example:
+  - `OUTPUT=json`, `PULL=true`, `PLATFORM=linux/arm64`, `DEBUG=true`
 
 Pre-commit hooks:
 ```bash
