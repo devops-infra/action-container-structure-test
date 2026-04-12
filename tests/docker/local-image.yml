@@ -17,11 +17,11 @@ commandTests:
     args: [/etc/os-release]
     expectedOutput: [VERSION_ID=3\.21]
 
-  - name: APK cache cleaned
+  - name: Temporary and APK cache cleaned
     command: bash
     args:
       - -lc
-      - test ! -d /var/cache/apk || test -z "$(find /var/cache/apk -mindepth 1 -maxdepth 1 2>/dev/null)"
+      - test ! -f /tmp/checksums.txt && (test ! -d /var/cache/apk || test -z "$(find /var/cache/apk -mindepth 1 -maxdepth 1 2>/dev/null)")
 
 fileExistenceTests:
   - name: entrypoint exists

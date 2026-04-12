@@ -1,25 +1,31 @@
-FROM alpine:3.21
+FROM alpine:3.23
+
+# Multi-architecture from buildx
+ARG TARGETARCH
+# renovate: datasource=github-releases depName=GoogleContainerTools/container-structure-test
+ARG CST_VERSION=v1.22.1
 
 # Copy all needed files
 COPY entrypoint.sh /
 
 # Install needed packages
 # hadolint ignore=DL3018
-RUN apk add --no-cache \
-      bash \
-      curl \
-      jq && \
-    chmod +x /entrypoint.sh
-
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
-
-# Install container-structure-test binary
-ARG TARGETARCH
-# renovate: datasource=github-releases depName=GoogleContainerTools/container-structure-test
-ARG CST_VERSION=v1.22.1
-RUN set -eux ;\
-  case "${TARGETARCH}" in amd64|arm64) ;; *) echo "Unsupported TARGETARCH: ${TARGETARCH}"; exit 1 ;; esac ;\
-  binary="container-structure-test-linux-${TARGETARCH}" ;\
+RUN set -eux; \
+  apk add --no-cache \
+    bash \
+    curl \
+    jq; \
+  chmod +x /entrypoint.sh; \
+  targetarch="${TARGETARCH:-}" ;\
+  if [ -z "${targetarch}" ]; then \
+    case "$(uname -m)" in \
+      x86_64) targetarch="amd64" ;; \
+      aarch64|arm64) targetarch="arm64" ;; \
+      *) echo "Unsupported host architecture: $(uname -m)"; exit 1 ;; \
+    esac ;\
+  fi ;\
+  case "${targetarch}" in amd64|arm64) ;; *) echo "Unsupported TARGETARCH: ${targetarch}"; exit 1 ;; esac ;\
+  binary="container-structure-test-linux-${targetarch}" ;\
   base_url="https://github.com/GoogleContainerTools/container-structure-test/releases/download/${CST_VERSION}" ;\
   curl -fsSL "${base_url}/checksums.txt" -o /tmp/checksums.txt ;\
   curl -fsSL \
@@ -31,6 +37,7 @@ RUN set -eux ;\
   [ "${actual_sha}" = "${expected_sha}" ] ;\
   chmod +x /usr/local/bin/container-structure-test ;\
   rm -f /tmp/checksums.txt ;\
+  rm -rf /var/cache/apk/* ;\
   container-structure-test version
 
 # Finish up

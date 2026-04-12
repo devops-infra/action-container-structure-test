@@ -231,6 +231,8 @@ if [[ -n "${TEST_REPORT}" ]]; then
 
   if [[ -f "${TEST_REPORT}" ]]; then
     info "Test report written to: ${TEST_REPORT}"
+    info "Test report content:"
+    cat "${TEST_REPORT}"
     case "${OUTPUT}" in
       junit) parse_stats_junit "${TEST_REPORT}" ;;
       *)     parse_stats_json "${TEST_REPORT}" ;;

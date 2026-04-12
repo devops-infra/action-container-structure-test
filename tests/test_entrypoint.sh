@@ -98,8 +98,6 @@ EOF
   local args_file="${case_dir}/args.txt"
   local cfg1="${case_dir}/one.yaml"
   local cfg2="${case_dir}/two.yaml"
-  local report_file="${case_dir}/report.out"
-
   printf "schemaVersion: '2.0.0'\n" > "${cfg1}"
   printf "schemaVersion: '2.0.0'\n" > "${cfg2}"
 
@@ -139,6 +137,10 @@ run_case invalid-bool 1 env INPUT_PULL="yes"
 run_case json-output 0 env INPUT_OUTPUT="json"
 run_case junit-output-report 0 env INPUT_OUTPUT="junit" INPUT_TEST_REPORT="${TMP_DIR}/junit-report.xml"
 run_case report-json 0 env INPUT_TEST_REPORT="${TMP_DIR}/json-report.json"
+run_case default-image-tag-without-oci 1 env -u INPUT_IMAGE_FROM_OCI_LAYOUT INPUT_DEFAULT_IMAGE_TAG="latest"
+run_case default-image-tag-with-oci 0 env -u INPUT_IMAGE INPUT_IMAGE_FROM_OCI_LAYOUT="/tmp/oci-layout" INPUT_DEFAULT_IMAGE_TAG="latest"
+run_case junit-suite-name-without-junit-output 1 env INPUT_JUNIT_SUITE_NAME="suite-a"
+run_case junit-suite-name-with-junit-output 0 env INPUT_OUTPUT="junit" INPUT_JUNIT_SUITE_NAME="suite-a"
 
 json_out="${TMP_DIR}/json-output/github_output.txt"
 if assert_contains 'total=3' "${json_out}" && assert_contains 'passed=2' "${json_out}" && assert_contains 'failed=1' "${json_out}"; then
@@ -159,6 +161,34 @@ if assert_contains 'total=4' "${report_out}" && assert_contains 'passed=3' "${re
   pass 'json report parsing'
 else
   fail 'json report parsing'
+fi
+
+default_image_tag_err="${TMP_DIR}/default-image-tag-without-oci/stderr.txt"
+if assert_contains "Input 'default_image_tag' requires 'image_from_oci_layout'." "${default_image_tag_err}"; then
+  pass 'default_image_tag validation'
+else
+  fail 'default_image_tag validation'
+fi
+
+default_image_tag_args="${TMP_DIR}/default-image-tag-with-oci/args.txt"
+if assert_contains '--image-from-oci-layout /tmp/oci-layout' "${default_image_tag_args}" && assert_contains '--default-image-tag latest' "${default_image_tag_args}"; then
+  pass 'default_image_tag with oci args'
+else
+  fail 'default_image_tag with oci args'
+fi
+
+junit_suite_name_err="${TMP_DIR}/junit-suite-name-without-junit-output/stderr.txt"
+if assert_contains "Input 'junit_suite_name' can only be used when output is 'junit'." "${junit_suite_name_err}"; then
+  pass 'junit_suite_name validation'
+else
+  fail 'junit_suite_name validation'
+fi
+
+junit_suite_name_args="${TMP_DIR}/junit-suite-name-with-junit-output/args.txt"
+if assert_contains '--output junit' "${junit_suite_name_args}" && assert_contains '--junit-suite-name suite-a' "${junit_suite_name_args}"; then
+  pass 'junit_suite_name with junit args'
+else
+  fail 'junit_suite_name with junit args'
 fi
 
 if [[ "${FAIL_COUNT}" -gt 0 ]]; then

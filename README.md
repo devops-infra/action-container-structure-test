@@ -58,26 +58,26 @@ This action supports three tag levels for flexible versioning:
 ```
 
 ### 🔧 Input Parameters
-| Input                   | Required | Default  | Description                                                                                 |
-|:------------------------|:--------:|:--------:|:--------------------------------------------------------------------------------------------|
-| `image`                 |    *     |          | Image to test. Required unless `image_from_oci_layout` is set. Mutually exclusive with it.  |
-| `config`                |   Yes    |          | Path(s) to test config file(s). Space or newline-separated for multiple files.              |
-| `driver`                |    No    | `docker` | Driver to use when running tests: `docker`, `tar`, or `host`.                               |
-| `platform`              |    No    |          | Platform to test, e.g. `linux/amd64` or `linux/arm64`. Defaults to host arch.               |
-| `pull`                  |    No    | `false`  | Force pull the image before running tests (docker driver only).                             |
-| `save`                  |    No    | `false`  | Preserve created containers after the test run.                                             |
-| `quiet`                 |    No    | `false`  | Suppress test output.                                                                       |
-| `no_color`              |    No    | `false`  | Disable colorized output.                                                                   |
-| `output`                |    No    |  `text`  | Output format: `text`, `json`, or `junit`.                                                  |
-| `test_report`           |    No    |          | Write test results to this file path. CST converts `text` to `json` automatically.          |
-| `junit_suite_name`      |    No    |          | Name for the JUnit test suite (only used when `output` is `junit`).                         |
-| `metadata`              |    No    |          | Path to image metadata file.                                                                |
-| `runtime`               |    No    |          | Runtime to use with the docker driver (e.g. `runsc` for gVisor).                            |
-| `force`                 |    No    | `false`  | Force run of host driver without interactive prompt.                                        |
-| `image_from_oci_layout` |    No    |          | Path to OCI image layout directory. Mutually exclusive with `image`.                        |
-| `default_image_tag`     |    No    |          | Default image tag when OCI layout lacks a ref annotation. Requires `image_from_oci_layout`. |
-| `ignore_ref_annotation` |    No    | `false`  | Ignore `org.opencontainers.image.ref.name` annotation when loading OCI layout.              |
-| `debug`                 |    No    | `false`  | Enable verbose debug logging in the action entrypoint.                                      |
+| Input                   | Required | Default  | Description                                                                                               |
+|:------------------------|:--------:|:--------:|:----------------------------------------------------------------------------------------------------------|
+| `image`                 |    *     |          | Image to test. Required unless `image_from_oci_layout` is set. Mutually exclusive with it.                |
+| `config`                |   Yes    |          | Path(s) to test config file(s). Space or newline-separated for multiple files.                            |
+| `driver`                |    No    | `docker` | Driver to use when running tests: `docker`, `tar`, or `host`.                                             |
+| `platform`              |    No    |          | Platform to test, e.g. `linux/amd64` or `linux/arm64`. Defaults to host arch.                             |
+| `pull`                  |    No    | `false`  | Force pull the image before running tests (docker driver only).                                           |
+| `save`                  |    No    | `false`  | Preserve created containers after the test run.                                                           |
+| `quiet`                 |    No    | `false`  | Suppress test output.                                                                                     |
+| `no_color`              |    No    | `false`  | Disable colorized output.                                                                                 |
+| `output`                |    No    |  `text`  | Output format: `text`, `json`, or `junit`.                                                                |
+| `test_report`           |    No    |          | Write test results to this file path, then print it to logs. CST converts `text` to `json` automatically. |
+| `junit_suite_name`      |    No    |          | Name for the JUnit test suite (only used when `output` is `junit`).                                       |
+| `metadata`              |    No    |          | Path to image metadata file.                                                                              |
+| `runtime`               |    No    |          | Runtime to use with the docker driver (e.g. `runsc` for gVisor).                                          |
+| `force`                 |    No    | `false`  | Force run of host driver without interactive prompt.                                                      |
+| `image_from_oci_layout` |    No    |          | Path to OCI image layout directory. Mutually exclusive with `image`.                                      |
+| `default_image_tag`     |    No    |          | Default image tag when OCI layout lacks a ref annotation. Requires `image_from_oci_layout`.               |
+| `ignore_ref_annotation` |    No    | `false`  | Ignore `org.opencontainers.image.ref.name` annotation when loading OCI layout.                            |
+| `debug`                 |    No    | `false`  | Enable verbose debug logging in the action entrypoint.                                                    |
 
 
 ### 📤 Output Parameters
