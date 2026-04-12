@@ -18,3 +18,20 @@ jobs:
     with:
       profile: actions
     secrets: inherit
+
+  smoke-test:
+    name: Smoke test local action image
+    needs: [call]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Task
+        uses: arduino/setup-task@v2.0.0
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and run smoke test
+        run: task docker:test:smoke

@@ -4,7 +4,7 @@ commandTests:
   - name: CST version binary present
     command: /usr/local/bin/container-structure-test
     args: [version]
-    expectedOutput: [1\.22\.1]
+    expectedOutput: [1.]
 
   - name: Required tools installed
     command: bash
