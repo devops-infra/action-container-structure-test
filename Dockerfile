@@ -1,20 +1,20 @@
-FROM alpine:3.23
+FROM alpine:3.23.3
 
 # Multi-architecture from buildx
 ARG TARGETARCH
-# renovate: datasource=github-releases depName=GoogleContainerTools/container-structure-test
+
+# GoogleContainerTools/container-structure-test
 ARG CST_VERSION=v1.22.1
 
 # Copy all needed files
 COPY entrypoint.sh /
+COPY alpine-packages.txt /tmp/alpine-packages.txt
 
 # Install needed packages
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 # hadolint ignore=DL3018
 RUN set -eux; \
-  apk add --no-cache \
-    bash \
-    curl \
-    jq; \
+  xargs -r apk add --no-cache < /tmp/alpine-packages.txt; \
   chmod +x /entrypoint.sh; \
   targetarch="${TARGETARCH:-}" ;\
   if [ -z "${targetarch}" ]; then \
@@ -36,8 +36,9 @@ RUN set -eux; \
   actual_sha="$(sha256sum /usr/local/bin/container-structure-test | awk '{print $1}')" ;\
   [ "${actual_sha}" = "${expected_sha}" ] ;\
   chmod +x /usr/local/bin/container-structure-test ;\
-  rm -f /tmp/checksums.txt ;\
-  rm -rf /var/cache/apk/* ;\
+  rm -rf /var/cache/* ;\
+  rm -rf /root/.cache/* ;\
+  rm -rf /tmp/* ;\
   container-structure-test version
 
 # Finish up

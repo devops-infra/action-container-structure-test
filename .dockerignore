@@ -2,6 +2,7 @@
 *
 
 # Include
+!alpine-packages.txt
 !Dockerfile
 !entrypoint.sh
 !LICENSE

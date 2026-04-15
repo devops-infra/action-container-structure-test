@@ -1,18 +1,20 @@
-name: (Cron) Weekly repository health
+name: (Auto) Pull Request Create
 
 on:
-  schedule:
-    - cron: 0 5 * * 1
-  workflow_dispatch:
+  push:
+    branches-ignore:
+      - master
+      - main
+      - dependabot/**
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
   packages: write
+  pull-requests: write
 
 jobs:
   call:
-    uses: devops-infra/.github/.github/workflows/reusable-cron-check-dependencies.yml@v1
+    uses: devops-infra/.github/.github/workflows/reusable-auto-pull-request-create.yml@v1
     with:
       profile: actions
     secrets: inherit
