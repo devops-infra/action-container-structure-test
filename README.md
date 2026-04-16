@@ -24,7 +24,7 @@ Check also other actions from [DevOps-Infra](https://shyper.pro/portfolio/projec
 [
 ![GitHub repo](https://img.shields.io/badge/GitHub-devops--infra%2Faction--container--structure--test-blueviolet.svg?style=plastic&logo=github)
 ![GitHub last commit](https://img.shields.io/github/last-commit/devops-infra/action-container-structure-test?color=blueviolet&logo=github&style=plastic&label=Last%20commit)
-![Pull Request](https://github.com/devops-infra/action-container-structure-test/actions/workflows/auto-create-pull-request.yml/badge.svg)
+![Pull Request](https://github.com/devops-infra/action-container-structure-test/actions/workflows/auto-pull-request-create.yml/badge.svg)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/devops-infra/action-container-structure-test?color=blueviolet&label=Code%20size&style=plastic&logo=github)
 ![GitHub license](https://img.shields.io/github/license/devops-infra/action-container-structure-test?color=blueviolet&logo=github&style=plastic&label=License)
 ](https://github.com/devops-infra/action-container-structure-test "shields.io")
@@ -34,7 +34,7 @@ Check also other actions from [DevOps-Infra](https://shyper.pro/portfolio/projec
 ![Docker version](https://img.shields.io/docker/v/devopsinfra/action-container-structure-test?color=blue&label=Version&logo=docker&style=plastic&sort=semver)
 ![Image size](https://img.shields.io/docker/image-size/devopsinfra/action-container-structure-test/latest?label=Image%20size&style=plastic&logo=docker)
 ![Docker Pulls](https://img.shields.io/docker/pulls/devopsinfra/action-container-structure-test?color=blue&label=Pulls&logo=docker&style=plastic)
-![Weekly Health](https://github.com/devops-infra/action-container-structure-test/actions/workflows/cron-check-dependencies.yml/badge.svg)
+![Weekly Health](https://github.com/devops-infra/action-container-structure-test/actions/workflows/cron-dependency-update.yml/badge.svg)
 ](https://hub.docker.com/r/devopsinfra/action-container-structure-test "shields.io")
 
 
@@ -265,7 +265,7 @@ Full documentation: [GoogleContainerTools/container-structure-test](https://gith
 
 ## 🏗️ CI/CD
 Workflows included:
-- (Auto) Create Pull Request (`.github/workflows/auto-create-pull-request.yml`)
+- (Auto) Pull Request Create (`.github/workflows/auto-pull-request-create.yml`)
   - Trigger: push to any branch except `master` and `dependabot/**`.
   - Jobs:
     - Lint
@@ -279,12 +279,12 @@ Workflows included:
     - Build and push multi-platform image, and inspect manifest
     - Publish GitHub Release
     - Update Docker hub description
-- (Cron) Weekly dependency build (`.github/workflows/cron-check-dependencies.yml`)
+- (Cron) Weekly dependency build (`.github/workflows/cron-dependency-update.yml`)
   - Trigger: Weekly on Monday at 08:00 UTC
   - Jobs:
     - Lint
     - Build and push multi-platform test image, and inspect manifest
-- (Manual) Update version (`.github/workflows/manual-update-version.yml`)
+- (Manual) Update version (`.github/workflows/manual-release-create.yml`)
   - Trigger: manual `workflow_dispatch` with `type` (`patch|minor|major|set`) xor `version` when `type=set`
 pushes to `release/**` branch and creates a pull request to create a new release
   - Jobs:
