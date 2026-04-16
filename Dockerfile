@@ -11,7 +11,7 @@ COPY entrypoint.sh /
 COPY alpine-packages.txt /tmp/alpine-packages.txt
 
 # Install needed packages
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+SHELL ["/bin/sh", "-euxo", "pipefail", "-c"]
 # hadolint ignore=DL3018
 RUN set -eux; \
   xargs -r apk add --no-cache < /tmp/alpine-packages.txt; \
