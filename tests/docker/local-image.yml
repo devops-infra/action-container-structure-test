@@ -21,7 +21,10 @@ commandTests:
     command: bash
     args:
       - -lc
-      - test ! -f /tmp/checksums.txt && (test ! -d /var/cache/apk || test -z "$(find /var/cache/apk -mindepth 1 -maxdepth 1 2>/dev/null)")
+      - >-
+        test ! -f /tmp/checksums.txt && test ! -f /tmp/alpine-packages.txt &&
+        (test ! -d /var/cache/apk || test -z "$(find /var/cache/apk -mindepth 1 -maxdepth 1 2>/dev/null)") &&
+        (test ! -d /root/.cache || test -z "$(find /root/.cache -mindepth 1 -maxdepth 1 2>/dev/null)")
 
 fileExistenceTests:
   - name: entrypoint exists
