@@ -91,7 +91,7 @@ This action supports three tag levels for flexible versioning:
 
 ## 💻 Usage Examples
 
-### 📝 Basic
+### 📝 Basic Example
 Run structure tests against a Docker image using a single config file.
 
 ```yaml
@@ -112,7 +112,7 @@ jobs:
           config: tests/structure-test.yaml
 ```
 
-### 🔀 Advanced
+### 🔀 Advanced Example
 Run tests with multiple config files, JSON output, and a saved report.
 
 ```yaml
@@ -149,7 +149,10 @@ jobs:
 ```
 
 ### 🎯 Use specific version
-Run the action pinned to a specific version tag.
+Pick the tag level based on your stability needs:
+- `vX.Y.Z`: exact immutable release (most predictable)
+- `vX.Y`: latest patch within one minor line
+- `vX`: latest patch within one major line
 
 ```yaml
 name: Run structure tests on each commit
