@@ -359,3 +359,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you have any questions or need help, please:
 - 📝 Create an [issue](https://github.com/devops-infra/action-container-structure-test/issues)
 - 🌟 Star this repository if you find it useful!
+
+## 🧪 End-to-End Validation
+Use the manual workflow `.github/workflows/manual-e2e-validate.yml` to validate this action against the centralized E2E repository.
+
+- `mode=image` validates a published image tag (recommended for `-test` and `-rc` release checks).
+- `mode=ref` validates ref-oriented E2E paths against stable pinned action refs.
+
+CI/CD automation also runs these E2E checks automatically:
+
+- Pull requests: E2E validation runs through reusable org workflows.
+- Release branch prepare: E2E validation runs against release candidate artifacts (`-rc`).
+- Release create: E2E validation runs against production release artifacts.
+
+Example trigger inputs:
+
+```text
+mode=ref
+```
+
+```text
+mode=image
+image_tag=v1.2.3-test
+```
