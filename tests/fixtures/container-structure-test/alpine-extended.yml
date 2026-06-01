@@ -1,0 +1,7 @@
+schemaVersion: "2.0.0"
+
+commandTests:
+  - name: Echo hello
+    command: echo
+    args: ["hello"]
+    expectedOutput: ["hello"]
