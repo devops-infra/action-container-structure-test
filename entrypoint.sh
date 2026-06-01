@@ -3,6 +3,7 @@
 set -Eeuo pipefail
 
 RET_CODE=0
+TMP_CLEANUP_FILES=()
 
 [[ "${INPUT_DEBUG:-false}" == "true" ]] && set -x
 
@@ -20,6 +21,16 @@ write_output() {
     info "[LOCAL] output -> ${kv}"
   fi
 }
+
+# shellcheck disable=SC2329
+cleanup() {
+  local file
+  for file in "${TMP_CLEANUP_FILES[@]}"; do
+    [[ -n "${file}" && -f "${file}" ]] && rm -f "${file}"
+  done
+}
+
+trap cleanup EXIT
 
 trap 'error "Action failed. Check logs above."' ERR
 
@@ -51,6 +62,41 @@ validate_enum() {
   done
   error "Invalid value for '${name}': '${value}'. Allowed values: $*"
   exit 1
+}
+
+is_safe_host_tmp_path() {
+  local path="$1"
+  [[ "${path}" == /tmp/* ]] || return 1
+  [[ "${path}" != *".."* ]] || return 1
+  return 0
+}
+
+read_host_tmp_file() {
+  local host_path="$1"
+  local out_file="$2"
+  local relative_path
+
+  is_safe_host_tmp_path "${host_path}" || return 1
+  command -v docker >/dev/null 2>&1 || return 1
+
+  relative_path="${host_path#/tmp/}"
+  docker run --rm -i -v /tmp:/hosttmp alpine:3.23.4 \
+    sh -c "cat \"/hosttmp/${relative_path}\"" > "${out_file}" 2>/dev/null
+}
+
+write_host_tmp_file() {
+  local in_file="$1"
+  local host_path="$2"
+  local relative_path
+
+  is_safe_host_tmp_path "${host_path}" || return 1
+  command -v docker >/dev/null 2>&1 || return 1
+  [[ -f "${in_file}" ]] || return 1
+
+  relative_path="${host_path#/tmp/}"
+  docker run --rm -i -v /tmp:/hosttmp alpine:3.23.4 \
+    sh -c "mkdir -p \"\$(dirname \"/hosttmp/${relative_path}\")\" && cat > \"/hosttmp/${relative_path}\"" \
+    < "${in_file}" >/dev/null 2>&1
 }
 
 # Inputs
@@ -177,7 +223,28 @@ CMD_ARGS+=(--driver "${DRIVER}")
 [[ "${NO_COLOR}" == "true" ]] && CMD_ARGS+=(--no-color)
 CMD_ARGS+=(--output "${OUTPUT}")
 [[ -n "${JUNIT_SUITE_NAME}" ]] && CMD_ARGS+=(--junit-suite-name "${JUNIT_SUITE_NAME}")
-[[ -n "${METADATA}" ]]         && CMD_ARGS+=(--metadata "${METADATA}")
+
+if [[ -n "${METADATA}" ]]; then
+  EFFECTIVE_METADATA="${METADATA}"
+  if [[ ! -f "${EFFECTIVE_METADATA}" && "${METADATA}" == /tmp/* ]]; then
+    TEMP_METADATA_FILE="$(mktemp /tmp/cst-metadata-XXXXXX.json)"
+    if read_host_tmp_file "${METADATA}" "${TEMP_METADATA_FILE}"; then
+      info "Loaded metadata from host temporary path: ${METADATA}"
+      EFFECTIVE_METADATA="${TEMP_METADATA_FILE}"
+      TMP_CLEANUP_FILES+=("${TEMP_METADATA_FILE}")
+    else
+      rm -f "${TEMP_METADATA_FILE}"
+    fi
+  fi
+
+  if [[ ! -f "${EFFECTIVE_METADATA}" ]]; then
+    error "Metadata file not found: ${METADATA}"
+    exit 1
+  fi
+
+  CMD_ARGS+=(--metadata "${EFFECTIVE_METADATA}")
+fi
+
 [[ -n "${RUNTIME}" ]]          && CMD_ARGS+=(--runtime "${RUNTIME}")
 [[ "${FORCE}" == "true" ]]     && CMD_ARGS+=(--force)
 
@@ -237,6 +304,14 @@ if [[ -n "${TEST_REPORT}" ]]; then
       junit) parse_stats_junit "${TEST_REPORT}" ;;
       *)     parse_stats_json "${TEST_REPORT}" ;;
     esac
+
+    if [[ "${TEST_REPORT}" == /tmp/* ]]; then
+      if write_host_tmp_file "${TEST_REPORT}" "${TEST_REPORT}"; then
+        info "Mirrored test report to host temporary path: ${TEST_REPORT}"
+      else
+        warn "Unable to mirror test report to host temporary path: ${TEST_REPORT}"
+      fi
+    fi
   else
     warn "Expected test report file was not created: ${TEST_REPORT}"
   fi

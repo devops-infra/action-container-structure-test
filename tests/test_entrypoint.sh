@@ -6,7 +6,8 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 ENTRYPOINT="${ROOT_DIR}/entrypoint.sh"
 
 TMP_DIR="$(mktemp -d)"
-trap 'rm -rf "${TMP_DIR}"' EXIT
+HOST_TMP_METADATA="/tmp/cst-metadata-${$}.json"
+trap 'rm -rf "${TMP_DIR}"; rm -f "${HOST_TMP_METADATA}"' EXIT
 
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -25,6 +26,15 @@ assert_contains() {
   local needle="$1"
   local file="$2"
   if grep -Fq -- "${needle}" "${file}"; then
+    return 0
+  fi
+  return 1
+}
+
+assert_regex() {
+  local pattern="$1"
+  local file="$2"
+  if grep -Eq -- "${pattern}" "${file}"; then
     return 0
   fi
   return 1
@@ -90,7 +100,32 @@ fi
 exit "${FAKE_CST_EXIT_CODE:-0}"
 EOF
 
+  cat > "${case_dir}/bin/docker" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+cmd="$*"
+if [[ "${cmd}" =~ /hosttmp/([^\"[:space:]]+) ]]; then
+  rel_path="${BASH_REMATCH[1]}"
+  host_path="/tmp/${rel_path}"
+
+  if [[ "${cmd}" == *"cat >"* ]]; then
+    mkdir -p "$(dirname "${host_path}")"
+    cat > "${host_path}"
+    exit 0
+  fi
+
+  if [[ -f "${host_path}" ]]; then
+    cat "${host_path}"
+    exit 0
+  fi
+fi
+
+exit 1
+EOF
+
   chmod +x "${case_dir}/bin/container-structure-test"
+  chmod +x "${case_dir}/bin/docker"
 
   local output_file="${case_dir}/github_output.txt"
   local stdout_file="${case_dir}/stdout.txt"
@@ -142,6 +177,10 @@ run_case default-image-tag-with-oci 0 env -u INPUT_IMAGE INPUT_IMAGE_FROM_OCI_LA
 run_case junit-suite-name-without-junit-output 1 env INPUT_JUNIT_SUITE_NAME="suite-a"
 run_case junit-suite-name-with-junit-output 0 env INPUT_OUTPUT="junit" INPUT_JUNIT_SUITE_NAME="suite-a"
 
+printf '{"config":{"Env":["FOO=bar"]}}\n' > "${HOST_TMP_METADATA}"
+run_case metadata-file-not-found 1 env INPUT_METADATA="/tmp/cst-metadata-not-found-${$}.json"
+run_case metadata-host-tmp 0 env INPUT_METADATA="${HOST_TMP_METADATA}"
+
 json_out="${TMP_DIR}/json-output/github_output.txt"
 if assert_contains 'total=3' "${json_out}" && assert_contains 'passed=2' "${json_out}" && assert_contains 'failed=1' "${json_out}"; then
   pass 'json metrics parsing'
@@ -189,6 +228,20 @@ if assert_contains '--output junit' "${junit_suite_name_args}" && assert_contain
   pass 'junit_suite_name with junit args'
 else
   fail 'junit_suite_name with junit args'
+fi
+
+metadata_missing_err="${TMP_DIR}/metadata-file-not-found/stderr.txt"
+if assert_contains "Metadata file not found: /tmp/cst-metadata-not-found-${$}.json" "${metadata_missing_err}"; then
+  pass 'metadata missing validation'
+else
+  fail 'metadata missing validation'
+fi
+
+metadata_args="${TMP_DIR}/metadata-host-tmp/args.txt"
+if assert_regex '--metadata /tmp/cst-metadata-[^[:space:]]+\.json' "${metadata_args}"; then
+  pass 'metadata host tmp fallback'
+else
+  fail 'metadata host tmp fallback'
 fi
 
 if [[ "${FAIL_COUNT}" -gt 0 ]]; then
