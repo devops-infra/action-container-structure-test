@@ -178,8 +178,9 @@ run_case junit-suite-name-without-junit-output 1 env INPUT_JUNIT_SUITE_NAME="sui
 run_case junit-suite-name-with-junit-output 0 env INPUT_OUTPUT="junit" INPUT_JUNIT_SUITE_NAME="suite-a"
 
 printf '{"config":{"Env":["FOO=bar"]}}\n' > "${HOST_TMP_METADATA}"
-run_case metadata-file-not-found 1 env INPUT_METADATA="/tmp/cst-metadata-not-found-${$}.json"
-run_case metadata-host-tmp 0 env INPUT_METADATA="${HOST_TMP_METADATA}"
+run_case metadata-file-not-found 1 env -u INPUT_IMAGE INPUT_IMAGE_FROM_OCI_LAYOUT="/tmp/oci-layout" INPUT_METADATA="/tmp/cst-metadata-not-found-${$}.json"
+run_case metadata-host-tmp 0 env -u INPUT_IMAGE INPUT_IMAGE_FROM_OCI_LAYOUT="/tmp/oci-layout" INPUT_METADATA="${HOST_TMP_METADATA}"
+run_case metadata-with-image 0 env INPUT_METADATA="${HOST_TMP_METADATA}"
 
 json_out="${TMP_DIR}/json-output/github_output.txt"
 if assert_contains 'total=3' "${json_out}" && assert_contains 'passed=2' "${json_out}" && assert_contains 'failed=1' "${json_out}"; then
@@ -242,6 +243,20 @@ if assert_regex '--metadata /tmp/cst-metadata-[^[:space:]]+\.json' "${metadata_a
   pass 'metadata host tmp fallback'
 else
   fail 'metadata host tmp fallback'
+fi
+
+metadata_with_image_args="${TMP_DIR}/metadata-with-image/args.txt"
+if ! assert_contains '--metadata ' "${metadata_with_image_args}"; then
+  pass 'metadata ignored with image'
+else
+  fail 'metadata ignored with image'
+fi
+
+metadata_with_image_err="${TMP_DIR}/metadata-with-image/stderr.txt"
+if assert_contains "Input 'metadata' is ignored when 'image' is set" "${metadata_with_image_err}"; then
+  pass 'metadata ignored warning with image'
+else
+  fail 'metadata ignored warning with image'
 fi
 
 if [[ "${FAIL_COUNT}" -gt 0 ]]; then

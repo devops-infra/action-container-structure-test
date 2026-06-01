@@ -225,24 +225,28 @@ CMD_ARGS+=(--output "${OUTPUT}")
 [[ -n "${JUNIT_SUITE_NAME}" ]] && CMD_ARGS+=(--junit-suite-name "${JUNIT_SUITE_NAME}")
 
 if [[ -n "${METADATA}" ]]; then
-  EFFECTIVE_METADATA="${METADATA}"
-  if [[ ! -f "${EFFECTIVE_METADATA}" && "${METADATA}" == /tmp/* ]]; then
-    TEMP_METADATA_FILE="$(mktemp /tmp/cst-metadata-XXXXXX.json)"
-    if read_host_tmp_file "${METADATA}" "${TEMP_METADATA_FILE}"; then
-      info "Loaded metadata from host temporary path: ${METADATA}"
-      EFFECTIVE_METADATA="${TEMP_METADATA_FILE}"
-      TMP_CLEANUP_FILES+=("${TEMP_METADATA_FILE}")
-    else
-      rm -f "${TEMP_METADATA_FILE}"
+  if [[ -n "${IMAGE}" ]]; then
+    warn "Input 'metadata' is ignored when 'image' is set because container-structure-test rejects this combination."
+  else
+    EFFECTIVE_METADATA="${METADATA}"
+    if [[ ! -f "${EFFECTIVE_METADATA}" && "${METADATA}" == /tmp/* ]]; then
+      TEMP_METADATA_FILE="$(mktemp /tmp/cst-metadata-XXXXXX.json)"
+      if read_host_tmp_file "${METADATA}" "${TEMP_METADATA_FILE}"; then
+        info "Loaded metadata from host temporary path: ${METADATA}"
+        EFFECTIVE_METADATA="${TEMP_METADATA_FILE}"
+        TMP_CLEANUP_FILES+=("${TEMP_METADATA_FILE}")
+      else
+        rm -f "${TEMP_METADATA_FILE}"
+      fi
     fi
-  fi
 
-  if [[ ! -f "${EFFECTIVE_METADATA}" ]]; then
-    error "Metadata file not found: ${METADATA}"
-    exit 1
-  fi
+    if [[ ! -f "${EFFECTIVE_METADATA}" ]]; then
+      error "Metadata file not found: ${METADATA}"
+      exit 1
+    fi
 
-  CMD_ARGS+=(--metadata "${EFFECTIVE_METADATA}")
+    CMD_ARGS+=(--metadata "${EFFECTIVE_METADATA}")
+  fi
 fi
 
 [[ -n "${RUNTIME}" ]]          && CMD_ARGS+=(--runtime "${RUNTIME}")
