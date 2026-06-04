@@ -48,7 +48,7 @@ This action supports three tag levels for flexible versioning:
 ## 📖 API Reference
 ```yaml
     - name: Run the Action
-      uses: devops-infra/action-container-structure-test@v1.0.3
+      uses: devops-infra/action-container-structure-test@v1.0.4
       with:
         image: my-image:latest
         config: tests/structure-test.yaml
@@ -163,7 +163,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: devops-infra/action-container-structure-test@v1.0.3
+      - uses: devops-infra/action-container-structure-test@v1.0.4
         id: pin-patch-version
         with:
           image: my-image:latest
