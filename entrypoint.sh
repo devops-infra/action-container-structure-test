@@ -80,7 +80,7 @@ read_host_tmp_file() {
   command -v docker >/dev/null 2>&1 || return 1
 
   relative_path="${host_path#/tmp/}"
-  docker run --rm -i -v /tmp:/hosttmp alpine:3.23.4 \
+  docker run --rm -i -v /tmp:/hosttmp alpine:3.24.1 \
     sh -c "cat \"/hosttmp/${relative_path}\"" > "${out_file}" 2>/dev/null
 }
 
@@ -94,7 +94,7 @@ write_host_tmp_file() {
   [[ -f "${in_file}" ]] || return 1
 
   relative_path="${host_path#/tmp/}"
-  docker run --rm -i -v /tmp:/hosttmp alpine:3.23.4 \
+  docker run --rm -i -v /tmp:/hosttmp alpine:3.24.1 \
     sh -c "mkdir -p \"\$(dirname \"/hosttmp/${relative_path}\")\" && cat > \"/hosttmp/${relative_path}\"" \
     < "${in_file}" >/dev/null 2>&1
 }
