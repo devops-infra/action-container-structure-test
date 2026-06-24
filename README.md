@@ -303,13 +303,14 @@ Workflows included:
   - Jobs:
     - Lint
     - Build and push multi-platform test image, and inspect manifest
-- (Manual) Update version (`.github/workflows/manual-release-create.yml`)
+- (Manual) Prepare release branch (`.github/workflows/manual-release-branch-prepare.yml`)
   - Trigger: manual `workflow_dispatch` with `type` (`patch|minor|major|set`) xor `version` when `type=set`
-pushes to `release/**` branch and creates a pull request to create a new release
+  - Creates `release/vX.Y.Z`, builds/pushes the `-rc` image, and opens the release PR
+  - Merge that PR to trigger `.github/workflows/auto-release-create.yml`, which tags and publishes the final release
   - Jobs:
     - Update version: bump or set; output `REL_VERSION`
-    - Build and push multi-platform image, and inspect manifest
-    - Create pull request, approve to create a release
+    - Build and push multi-platform `-rc` image, and inspect manifest
+    - Create pull request for the final release merge
 
 
 ## 🧑‍💻 Development
