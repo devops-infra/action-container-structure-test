@@ -59,10 +59,15 @@ fi
 
 output="text"
 test_report=""
+configs=()
 printf '%s\n' "$*" > "${FAKE_CST_ARGS_FILE}"
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    --config)
+      configs+=("$2")
+      shift 2
+      ;;
     --output)
       output="$2"
       shift 2
@@ -76,6 +81,14 @@ while [[ "$#" -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ -n "${FAKE_CST_CONFIG_DUMP_DIR:-}" ]]; then
+  idx=1
+  for cfg in "${configs[@]}"; do
+    cp "${cfg}" "${FAKE_CST_CONFIG_DUMP_DIR}/config-${idx}.yaml"
+    idx=$((idx + 1))
+  done
+fi
 
 if [[ -n "${test_report}" ]]; then
   if [[ "${output}" == "junit" ]]; then
@@ -131,16 +144,46 @@ EOF
   local stdout_file="${case_dir}/stdout.txt"
   local stderr_file="${case_dir}/stderr.txt"
   local args_file="${case_dir}/args.txt"
+  local config_dump_dir="${case_dir}/rendered-configs"
   local cfg1="${case_dir}/one.yaml"
   local cfg2="${case_dir}/two.yaml"
+  mkdir -p "${config_dump_dir}"
   printf "schemaVersion: '2.0.0'\n" > "${cfg1}"
   printf "schemaVersion: '2.0.0'\n" > "${cfg2}"
+  case "${name}" in
+    config-template-render)
+      cat > "${cfg1}" <<'EOF'
+schemaVersion: '2.0.0'
+commandTests:
+  - name: Example
+    command: bash
+    envVars:
+      - key: EXPECTED_VERSION
+        value: '{{TEMPLATE_VALUE}}'
+    args:
+      - -lc
+      - test "${EXPECTED_VERSION}" = "{{TEMPLATE_VALUE}}" && test "${INNER_SHELL_VAR}" = "outer-value"
+EOF
+      ;;
+    config-template-missing-var)
+      cat > "${cfg1}" <<'EOF'
+schemaVersion: '2.0.0'
+commandTests:
+  - name: Missing
+    command: bash
+    args:
+      - -lc
+      - test 'x' = '{{MISSING_VALUE}}'
+EOF
+      ;;
+  esac
 
   set +e
   (
     export PATH="${case_dir}/bin:${PATH}"
     export GITHUB_OUTPUT="${output_file}"
     export FAKE_CST_ARGS_FILE="${args_file}"
+    export FAKE_CST_CONFIG_DUMP_DIR="${config_dump_dir}"
     export INPUT_IMAGE="sample:latest"
     export INPUT_CONFIG="${cfg1} ${cfg2}"
     export INPUT_DRIVER="docker"
@@ -181,6 +224,8 @@ printf '{"config":{"Env":["FOO=bar"]}}\n' > "${HOST_TMP_METADATA}"
 run_case metadata-file-not-found 1 env -u INPUT_IMAGE INPUT_IMAGE_FROM_OCI_LAYOUT="/tmp/oci-layout" INPUT_METADATA="/tmp/cst-metadata-not-found-${$}.json"
 run_case metadata-host-tmp 0 env -u INPUT_IMAGE INPUT_IMAGE_FROM_OCI_LAYOUT="/tmp/oci-layout" INPUT_METADATA="${HOST_TMP_METADATA}"
 run_case metadata-with-image 0 env INPUT_METADATA="${HOST_TMP_METADATA}"
+run_case config-template-render 0 env TEMPLATE_VALUE="2.87.0" INNER_SHELL_VAR="outer-value"
+run_case config-template-missing-var 1 env
 
 json_out="${TMP_DIR}/json-output/github_output.txt"
 if assert_contains 'total=3' "${json_out}" && assert_contains 'passed=2' "${json_out}" && assert_contains 'failed=1' "${json_out}"; then
@@ -257,6 +302,20 @@ if assert_contains "Input 'metadata' is ignored when 'image' is set" "${metadata
   pass 'metadata ignored warning with image'
 else
   fail 'metadata ignored warning with image'
+fi
+
+template_rendered_cfg="${TMP_DIR}/config-template-render/rendered-configs/config-1.yaml"
+if assert_contains "value: '2.87.0'" "${template_rendered_cfg}" && assert_contains "test \"\${EXPECTED_VERSION}\" = \"2.87.0\"" "${template_rendered_cfg}" && assert_contains "test \"\${INNER_SHELL_VAR}\" = \"outer-value\"" "${template_rendered_cfg}"; then
+  pass 'config template rendering'
+else
+  fail 'config template rendering'
+fi
+
+template_missing_err="${TMP_DIR}/config-template-missing-var/stderr.txt"
+if assert_contains 'Unresolved config template variable(s)' "${template_missing_err}" && assert_contains 'MISSING_VALUE' "${template_missing_err}"; then
+  pass 'config template missing var validation'
+else
+  fail 'config template missing var validation'
 fi
 
 if [[ "${FAIL_COUNT}" -gt 0 ]]; then
