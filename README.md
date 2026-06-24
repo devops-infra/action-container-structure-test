@@ -11,6 +11,7 @@
 * Runs [GoogleContainerTools/container-structure-test](https://github.com/GoogleContainerTools/container-structure-test) in CI
 * Supports all test types: command tests, file existence tests, file content tests, metadata tests, license tests
 * Supports `docker`, `tar`, and `host` drivers
+* Renders `{{VAR_NAME}}` placeholders in test configs from the GitHub Actions job environment before executing CST
 * Exposes test totals (total / passed / failed) as Action outputs
 * Multi-platform image: `linux/amd64` and `linux/arm64`
 * Lightweight Alpine-based Docker image
@@ -58,26 +59,26 @@ This action supports three tag levels for flexible versioning:
 ```
 
 ### 🔧 Input Parameters
-| Input                   | Required | Default  | Description                                                                                               |
-|:------------------------|:--------:|:--------:|:----------------------------------------------------------------------------------------------------------|
-| `image`                 |    *     |          | Image to test. Required unless `image_from_oci_layout` is set. Mutually exclusive with it.                |
-| `config`                |   Yes    |          | Path(s) to test config file(s). Space or newline-separated for multiple files.                            |
-| `driver`                |    No    | `docker` | Driver to use when running tests: `docker`, `tar`, or `host`.                                             |
-| `platform`              |    No    |          | Platform to test, e.g. `linux/amd64` or `linux/arm64`. Defaults to host arch.                             |
-| `pull`                  |    No    | `false`  | Force pull the image before running tests (docker driver only).                                           |
-| `save`                  |    No    | `false`  | Preserve created containers after the test run.                                                           |
-| `quiet`                 |    No    | `false`  | Suppress test output.                                                                                     |
-| `no_color`              |    No    | `false`  | Disable colorized output.                                                                                 |
-| `output`                |    No    |  `text`  | Output format: `text`, `json`, or `junit`.                                                                |
-| `test_report`           |    No    |          | Write test results to this file path, then print it to logs. CST converts `text` to `json` automatically. |
-| `junit_suite_name`      |    No    |          | Name for the JUnit test suite (only used when `output` is `junit`).                                       |
-| `metadata`              |    No    |          | Path to image metadata file.                                                                              |
-| `runtime`               |    No    |          | Runtime to use with the docker driver (e.g. `runsc` for gVisor).                                          |
-| `force`                 |    No    | `false`  | Force run of host driver without interactive prompt.                                                      |
-| `image_from_oci_layout` |    No    |          | Path to OCI image layout directory. Mutually exclusive with `image`.                                      |
-| `default_image_tag`     |    No    |          | Default image tag when OCI layout lacks a ref annotation. Requires `image_from_oci_layout`.               |
-| `ignore_ref_annotation` |    No    | `false`  | Ignore `org.opencontainers.image.ref.name` annotation when loading OCI layout.                            |
-| `debug`                 |    No    | `false`  | Enable verbose debug logging in the action entrypoint.                                                    |
+| Input                   | Required | Default  | Description                                                                                                                                       |
+|:------------------------|:--------:|:--------:|:--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `image`                 |    *     |          | Image to test. Required unless `image_from_oci_layout` is set. Mutually exclusive with it.                                                        |
+| `config`                |   Yes    |          | Path(s) to test config file(s). Space or newline-separated for multiple files. `{{VAR_NAME}}` placeholders are rendered from the job environment. |
+| `driver`                |    No    | `docker` | Driver to use when running tests: `docker`, `tar`, or `host`.                                                                                     |
+| `platform`              |    No    |          | Platform to test, e.g. `linux/amd64` or `linux/arm64`. Defaults to host arch.                                                                     |
+| `pull`                  |    No    | `false`  | Force pull the image before running tests (docker driver only).                                                                                   |
+| `save`                  |    No    | `false`  | Preserve created containers after the test run.                                                                                                   |
+| `quiet`                 |    No    | `false`  | Suppress test output.                                                                                                                             |
+| `no_color`              |    No    | `false`  | Disable colorized output.                                                                                                                         |
+| `output`                |    No    |  `text`  | Output format: `text`, `json`, or `junit`.                                                                                                        |
+| `test_report`           |    No    |          | Write test results to this file path, then print it to logs. CST converts `text` to `json` automatically.                                         |
+| `junit_suite_name`      |    No    |          | Name for the JUnit test suite (only used when `output` is `junit`).                                                                               |
+| `metadata`              |    No    |          | Path to image metadata file.                                                                                                                      |
+| `runtime`               |    No    |          | Runtime to use with the docker driver (e.g. `runsc` for gVisor).                                                                                  |
+| `force`                 |    No    | `false`  | Force run of host driver without interactive prompt.                                                                                              |
+| `image_from_oci_layout` |    No    |          | Path to OCI image layout directory. Mutually exclusive with `image`.                                                                              |
+| `default_image_tag`     |    No    |          | Default image tag when OCI layout lacks a ref annotation. Requires `image_from_oci_layout`.                                                       |
+| `ignore_ref_annotation` |    No    | `false`  | Ignore `org.opencontainers.image.ref.name` annotation when loading OCI layout.                                                                    |
+| `debug`                 |    No    | `false`  | Enable verbose debug logging in the action entrypoint.                                                                                            |
 
 
 ### 📤 Output Parameters
@@ -234,6 +235,21 @@ jobs:
 
 Container Structure Test configs are YAML or JSON files.
 The current schema version is `2.0.0` and must be set in every config.
+
+The action renders `{{VAR_NAME}}` placeholders in config files before calling CST.
+Use this for workflow-controlled values such as versions exported into `GITHUB_ENV`.
+Keep `${VAR}` syntax for shell expansion that should happen inside the tested container.
+
+Example:
+
+```yaml
+commandTests:
+  - name: Azure CLI
+    command: bash
+    args:
+      - -lc
+      - test "$(az version --output json | jq -r '."azure-cli"')" = '{{AZ_VERSION}}'
+```
 
 ```yaml
 schemaVersion: '2.0.0'

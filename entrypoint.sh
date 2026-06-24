@@ -4,6 +4,7 @@ set -Eeuo pipefail
 
 RET_CODE=0
 TMP_CLEANUP_FILES=()
+CONFIG_TEMPLATE_PATTERN='\{\{[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\}\}'
 
 [[ "${INPUT_DEBUG:-false}" == "true" ]] && set -x
 
@@ -62,6 +63,33 @@ validate_enum() {
   done
   error "Invalid value for '${name}': '${value}'. Allowed values: $*"
   exit 1
+}
+
+render_config_template() {
+  local src_file="$1"
+  local dst_file="$2"
+  local content token var_name value
+  local -a missing_vars=()
+
+  content="$(cat "${src_file}")"
+
+  while IFS= read -r token; do
+    [[ -n "${token}" ]] || continue
+    var_name="$(printf '%s' "${token}" | sed -E 's/^\{\{[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\}\}$/\1/')"
+    if [[ ! -v "${var_name}" ]]; then
+      missing_vars+=("${var_name}")
+      continue
+    fi
+    value="${!var_name}"
+    content="${content//${token}/${value}}"
+  done < <(grep -oE "${CONFIG_TEMPLATE_PATTERN}" "${src_file}" | awk '!seen[$0]++')
+
+  if [[ "${#missing_vars[@]}" -gt 0 ]]; then
+    error "Unresolved config template variable(s) in ${src_file}: ${missing_vars[*]}"
+    exit 1
+  fi
+
+  printf '%s' "${content}" > "${dst_file}"
 }
 
 is_safe_host_tmp_path() {
@@ -211,7 +239,15 @@ for cfg_file in "${CONFIG_FILES[@]}"; do
     error "Config file not found: ${cfg_file}"
     exit 1
   fi
-  CMD_ARGS+=(--config "${cfg_file}")
+  if grep -qE "${CONFIG_TEMPLATE_PATTERN}" "${cfg_file}"; then
+    rendered_cfg="$(mktemp /tmp/cst-config-XXXXXX)"
+    render_config_template "${cfg_file}" "${rendered_cfg}"
+    TMP_CLEANUP_FILES+=("${rendered_cfg}")
+    info "Rendered config template: ${cfg_file} -> ${rendered_cfg}"
+    CMD_ARGS+=(--config "${rendered_cfg}")
+  else
+    CMD_ARGS+=(--config "${cfg_file}")
+  fi
 done
 
 # Add optional flags
