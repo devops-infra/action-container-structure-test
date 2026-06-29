@@ -75,12 +75,9 @@ tasks:
         fi
 
   dependency:update:
-    desc: 'No-op: no dedicated dependency updater configured for this profile'
+    desc: Update managed dependency pins for this profile
     cmds:
-      - |
-        echo "INFO: No dedicated dependency updater configured for this repository profile."
-        echo "INFO: Dependabot handles GitHub Actions and package metadata updates."
-        echo "INFO: Keep this task as a safe no-op until a repo-specific dependency updater is defined."
+      - task: packages:update
 
   version:get:
     desc: Get current version
