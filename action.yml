@@ -76,7 +76,7 @@ outputs:
     description: Exit code returned by container-structure-test
 runs:
   using: docker
-  image: docker://devopsinfra/action-container-structure-test:v1.0.6
+  image: docker://devopsinfra/action-container-structure-test:v1.0.7
 branding:
   color: blue
   icon: check-circle
