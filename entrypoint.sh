@@ -111,6 +111,17 @@ rendered_config_suffix() {
   esac
 }
 
+create_rendered_config_path() {
+  local src_file="$1"
+  local base_path suffix target_path
+
+  base_path="$(mktemp /tmp/cst-config-XXXXXX)"
+  suffix="$(rendered_config_suffix "${src_file}")"
+  target_path="${base_path}${suffix}"
+  mv "${base_path}" "${target_path}"
+  printf '%s' "${target_path}"
+}
+
 is_safe_host_tmp_path() {
   local path="$1"
   [[ "${path}" == /tmp/* ]] || return 1
@@ -259,7 +270,7 @@ for cfg_file in "${CONFIG_FILES[@]}"; do
     exit 1
   fi
   if grep -qE "${CONFIG_TEMPLATE_PATTERN}" "${cfg_file}"; then
-    rendered_cfg="$(mktemp "/tmp/cst-config-XXXXXX$(rendered_config_suffix "${cfg_file}")")"
+    rendered_cfg="$(create_rendered_config_path "${cfg_file}")"
     render_config_template "${cfg_file}" "${rendered_cfg}"
     TMP_CLEANUP_FILES+=("${rendered_cfg}")
     info "Rendered config template: ${cfg_file} -> ${rendered_cfg}"
