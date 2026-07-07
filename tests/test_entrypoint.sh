@@ -82,6 +82,17 @@ while [[ "$#" -gt 0 ]]; do
   esac
 done
 
+for cfg in "${configs[@]}"; do
+  case "${cfg}" in
+    *.json|*.yaml|*.yml)
+      ;;
+    *)
+      printf 'Error: error parsing config file: Please provide valid JSON or YAML config file\n' >&2
+      exit 1
+      ;;
+  esac
+done
+
 if [[ -n "${FAKE_CST_CONFIG_DUMP_DIR:-}" ]]; then
   idx=1
   for cfg in "${configs[@]}"; do
@@ -309,6 +320,13 @@ if assert_contains "value: '2.87.0'" "${template_rendered_cfg}" && assert_contai
   pass 'config template rendering'
 else
   fail 'config template rendering'
+fi
+
+template_render_args="${TMP_DIR}/config-template-render/args.txt"
+if assert_regex '--config /tmp/cst-config-[^[:space:]]+\.(yaml|yml)' "${template_render_args}"; then
+  pass 'config template rendered suffix'
+else
+  fail 'config template rendered suffix'
 fi
 
 template_missing_err="${TMP_DIR}/config-template-missing-var/stderr.txt"
